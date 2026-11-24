@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Christmas Dinner Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: warm, calm kitchen run-sheet; festive without tinsel
+   IDEA: the run-sheet pinned to the fridge on the day, counting backwards from the plates
+   PICTURE: big hanging-time schedule with a live "now" line, plus an oven/hob lane chart
+   COLOUR and TYPE: cranberry ground band, pine support, gold accent; DM Serif Display + Figtree
+   LAYOUT: band header with countdown, settings strip, schedule left / lanes and shopping right, stacks below 900px */
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#14100f);--ink:light-dark(#1d1716,#f3ecea);--mute:light-dark(#6c605d,#b3a6a3);
+--line:light-dark(#ece4e2,#2e2523);--panel:light-dark(#faf5f4,#1d1716);
+--berry:#7d1630;--berry2:light-dark(#7d1630,#e0607a);--pine:light-dark(#1f4a37,#6fbf95);--gold:light-dark(#b07a12,#e6b44a);
+--oven:light-dark(#b8324f,#e0607a);--hob:light-dark(#2d6a4f,#6fbf95);--rest:light-dark(#c9951f,#e6b44a);--prep:light-dark(#8a7f7c,#8f8380)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Figtree,system-ui,sans-serif;overflow-x:clip}
+h1,h2,.big{font-family:"DM Serif Display",Georgia,serif;font-weight:400;line-height:1.05;text-wrap:balance;margin:0}
+.band{padding:clamp(24px,4vw,52px) max(5vw,16px)}
+.wrap{max-width:1240px;margin:0 auto}
+header.band{background:var(--berry);color:#fff5f2;position:relative;overflow:hidden}
+header svg.snow{position:absolute;inset:0;width:100%;height:100%;opacity:.13;pointer-events:none}
+.hero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:28px;align-items:end;position:relative}
+h1{font-size:clamp(34px,5vw,52px)}
+.sub{opacity:.85;margin:.5em 0 0;max-width:46ch}
+.next{background:#fff5f2;color:#2a1015;border-radius:18px;padding:20px 22px;box-shadow:0 18px 40px -18px #0007}
+.next small{display:block;color:#7d1630;font-weight:600}
+.next .big{font-size:clamp(30px,4vw,44px);margin:.15em 0;white-space:nowrap}
+.next p{margin:.2em 0 0}
+.clockrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:18px;font-size:14px}
+.clockrow label{display:flex;gap:8px;align-items:center}
+.clockrow input[type=range]{flex:1;min-width:160px;accent-color:#e6b44a}
+.pill{border:1px solid #fff5;border-radius:99px;padding:8px 14px;background:transparent;color:inherit;font:inherit;cursor:pointer;min-height:40px}
+.pill[aria-pressed=true]{background:#fff5f2;color:#7d1630;border-color:#fff5f2;font-weight:600}
+.settings{background:var(--panel);border-bottom:1px solid var(--line)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px 18px}
+.f label{display:block;font-size:14px;font-weight:600;margin-bottom:4px}
+.f input,.f select{width:100%;font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);min-height:44px}
+.f .hint{font-size:13px;color:var(--mute);margin-top:4px}
+input:focus-visible,select:focus-visible,button:focus-visible,.dish:focus-within{outline:3px solid var(--gold);outline-offset:2px}
+.dishes{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.dish{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:99px;padding:8px 14px;background:var(--bg);cursor:pointer;min-height:44px;font-size:15px}
+.dish input{accent-color:var(--berry);width:18px;height:18px}
+.dish:has(input:checked){border-color:var(--berry2);background:color-mix(in srgb,var(--berry2) 9%,var(--bg))}
+.main{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:clamp(24px,4vw,48px);align-items:start}
+h2{font-size:32px;margin-bottom:6px}
+.lead{color:var(--mute);margin:0 0 18px}
+.day{font-weight:700;color:var(--berry2);margin:26px 0 6px;padding-bottom:6px;border-bottom:2px solid var(--berry2)}
+.task{display:grid;grid-template-columns:5.2em 28px minmax(0,1fr);gap:4px 12px;padding:12px 6px;border-bottom:1px solid var(--line);position:relative;align-items:start}
+.task time{font-family:"DM Serif Display",Georgia,serif;font-size:26px;line-height:1;white-space:nowrap;text-align:right}
+.task input{width:22px;height:22px;margin:2px 0 0;accent-color:var(--pine);cursor:pointer}
+.task b{font-weight:600}
+.task .d{display:block;color:var(--mute);font-size:15px}
+.tag{display:inline-block;font-size:13px;padding:1px 8px;border-radius:99px;margin-left:6px;color:#fff;vertical-align:1px;white-space:nowrap}
+.task.done b,.task.done time{text-decoration:line-through;opacity:.5}
+.task.now{background:color-mix(in srgb,var(--gold) 16%,transparent);border-radius:10px}
+.task.now::before{content:"";position:absolute;left:-10px;top:10px;bottom:10px;width:4px;border-radius:4px;background:var(--gold)}
+.nowline{height:0;border-top:2px dashed var(--gold);margin:6px 0;position:relative}
+.nowline span{position:absolute;right:0;top:-12px;background:var(--bg);color:var(--gold);font-size:13px;font-weight:700;padding:0 6px}
+aside .card{border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:22px;background:var(--panel)}
+.lanes{position:relative}
+.lrow{display:grid;grid-template-columns:7.5em minmax(0,1fr);gap:8px;align-items:center;min-height:30px;font-size:13px}
+.ltrack{position:relative;height:22px;background:color-mix(in srgb,var(--line) 55%,transparent);border-radius:6px}
+.bar{position:absolute;top:3px;bottom:3px;border-radius:4px}
+.ticks{position:relative;height:18px;margin-left:calc(7.5em + 8px);font-size:13px;color:var(--mute)}
+.ticks span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.lnow{position:absolute;top:0;bottom:0;width:2px;background:var(--gold);z-index:2}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--mute);margin-top:10px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.shop{list-style:none;padding:0;margin:0}
+.shop li{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line)}
+.shop li span:last-child{white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--mute)}
+.btn{font:inherit;font-weight:600;border:0;border-radius:10px;padding:10px 16px;min-height:44px;background:var(--pine);color:var(--bg);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
+.note{font-size:13px;color:var(--mute)}
+footer.band{border-top:1px solid var(--line);color:var(--mute);font-size:14px}
+footer a{color:var(--berry2)}
+@media(max-width:900px){.hero,.main{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){.task{grid-template-columns:4.2em 26px minmax(0,1fr)}.task time{font-size:21px}.lrow{grid-template-columns:5.5em minmax(0,1fr)}.ticks{margin-left:calc(5.5em + 8px)}}
+@media(prefers-reduced-motion:no-preference){.task.now::before{animation:pulse 2s ease-in-out infinite}@keyframes pulse{50%{opacity:.35}}}
+</style>
+<style>
+.lgrp{font-weight:700;font-size:14px;margin:14px 0 4px;color:var(--ink)}
+.lgrp span{font-weight:400;color:var(--mute)}
+.pt{position:absolute;top:2px;width:10px;height:18px;border-radius:3px;transform:translateX(-50%)}
+.src{font-size:13px;color:var(--gold);font-weight:600;margin-left:6px;white-space:nowrap}
+.temps{width:100%;border-collapse:collapse;font-size:15px}
+.temps td{padding:8px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.temps td:last-child{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;padding-left:12px}
+.snack{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);min-height:44px}
+.snack input{width:20px;height:20px;accent-color:var(--pine)}
+.snack.done span:first-of-type{text-decoration:line-through;opacity:.5}
+.snack small{color:var(--mute);margin-left:auto;white-space:nowrap}
+.task a,.snack a,.card a{color:var(--berry2)}
+.warn{border-left:4px solid var(--gold);padding:8px 12px;background:color-mix(in srgb,var(--gold) 12%,transparent);border-radius:0 8px 8px 0;font-size:14px;margin-top:12px}
+.latebox{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.latebox .btn{padding:10px 14px}
+#km{position:fixed;inset:0;z-index:50;background:#7d1630;color:#fff5f2;display:flex;flex-direction:column;padding:max(4vw,16px);overflow:auto}
+#km[hidden]{display:none}
+.kmtop{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-weight:600}
+.kmtop .clk{font-family:"DM Serif Display",Georgia,serif;font-size:28px;font-weight:400}
+.kmcard{flex:1;display:flex;flex-direction:column;justify-content:center;max-width:1000px;width:100%;margin:0 auto;padding:20px 0}
+.kmlabel{color:#e6b44a;font-weight:700;font-size:20px}
+.kmwhen{font-family:"DM Serif Display",Georgia,serif;font-size:clamp(64px,13vw,128px);line-height:1}
+.kmtitle{font-family:"DM Serif Display",Georgia,serif;font-size:clamp(30px,5.4vw,56px);line-height:1.08;margin:.15em 0 .25em;text-wrap:balance}
+.kmd{font-size:clamp(18px,2.4vw,24px);opacity:.9;max-width:42ch;margin:0}
+.kmcount{font-size:clamp(20px,2.6vw,26px);font-weight:700;margin-top:12px}
+.kmbtns{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr) minmax(0,1fr);gap:12px;margin-top:28px}
+.kmbtns button{min-height:76px;font:600 22px Figtree,system-ui,sans-serif;border-radius:16px;border:2px solid #fff6;background:transparent;color:inherit;cursor:pointer}
+.kmbtns #kmDone{background:#fff5f2;color:#7d1630;border-color:#fff5f2}
+.kmbtns button:disabled{opacity:.35;cursor:default}
+.kmthen{border-top:1px solid #fff4;padding-top:14px;font-size:18px;max-width:1000px;width:100%;margin:0 auto}
+.kmthen div{display:flex;gap:16px;padding:5px 0}.kmthen b{font-family:"DM Serif Display",Georgia,serif;font-weight:400;min-width:3.2em}
+#toasts{position:fixed;right:16px;bottom:16px;left:16px;z-index:60;display:flex;flex-direction:column;gap:10px;align-items:flex-end;pointer-events:none}
+.toast{pointer-events:auto;background:#1d1716;color:#fff5f2;border-left:6px solid #e6b44a;border-radius:12px;padding:14px 16px;max-width:420px;width:100%;box-shadow:0 14px 34px -10px #000c}
+.toast small{color:#e6b44a;font-weight:700}.toast b{display:block;font-size:19px;line-height:1.25;margin:2px 0}
+.toast span{display:block;font-size:15px;opacity:.85}
+.toast .row{margin-top:10px;gap:8px}.toast .btn{background:#fff5f2;color:#1d1716;min-height:44px;padding:8px 14px}.toast .btn.ghost{background:transparent;color:#fff5f2;border-color:#fff5}
+@media(prefers-reduced-motion:no-preference){.toast{animation:pop .35s ease-out}@keyframes pop{from{transform:translateY(20px);opacity:0}}}
+@media(max-width:600px){.menu .mcards{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;margin-inline:calc(-1 * max(5vw,16px));padding:2px max(5vw,16px) 8px;scroll-padding-inline:max(5vw,16px);scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.menu .mcards::-webkit-scrollbar{display:none}
+.menu .mc{flex:0 0 78%;scroll-snap-align:start}
+}
+.mgrp h3 .swipe{display:none;font-weight:400;color:var(--mute)}
+@media(max-width:600px){.mgrp h3 .swipe{display:inline}}
+@media(max-width:600px){.kmbtns{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.kmbtns #kmDone{grid-column:1/-1;grid-row:1}}
+.menu{border-bottom:1px solid var(--line)}
+.menuhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.mgrp{margin-top:14px}.mgrp h3{font-size:14px;font-weight:700;color:var(--berry2);margin:0 0 8px}
+.mcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.mc{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:var(--bg);display:flex;flex-direction:column;gap:4px}
+.mc b{font-size:17px;line-height:1.25}
+.mc .w{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:14px;color:var(--mute)}
+.mc .w .tag{margin:0}
+.mc .tm{font-family:"DM Serif Display",Georgia,serif;font-size:22px;line-height:1.1;white-space:nowrap}
+.mc .x{font-size:14px;color:var(--mute)}
+.veg{font-size:13px;font-weight:600;color:var(--pine);white-space:nowrap}
+.untimed time{font-size:16px;font-family:Figtree,system-ui,sans-serif;color:var(--mute);padding-top:3px}
+</style>
+</head>
+<body>
+<header class="band">
+<svg class="snow" aria-hidden="true"><defs><pattern id="sf" width="120" height="120" patternUnits="userSpaceOnUse"><g stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none"><g transform="translate(30 30)"><path d="M0-12V12M-10.4-6 10.4 6M-10.4 6 10.4-6"/></g><g transform="translate(90 85) scale(.6)"><path d="M0-12V12M-10.4-6 10.4 6M-10.4 6 10.4-6"/></g></g><circle cx="80" cy="25" r="2" fill="#fff"/><circle cx="20" cy="95" r="2.5" fill="#fff"/></pattern></defs><rect width="100%" height="100%" fill="url(#sf)"/></svg>
+<div class="wrap">
+ <div class="hero">
+  <div>
+   <h1>Our Christmas dinner, minute by minute</h1>
+   <p class="sub">Built from the family timetable: two ovens, a turkey and a lamb, two vegetarian bakes and everything on the side.</p>
+   <div class="clockrow">
+    <button class="pill" id="mLive" aria-pressed="true">Live clock</button>
+    <button class="pill" id="mPrac" aria-pressed="false">Practice run</button>
+    <button class="pill" id="alarmBtn" aria-pressed="false">Alarms off</button>
+    <button class="pill" id="kmBtn">Kitchen mode</button>
+    <label id="pracWrap" hidden><span id="pracLbl">12:00</span><input type="range" id="prac" min="0" max="100" value="0" aria-label="Practice time"></label>
+   </div>
+  </div>
+  <div class="next" aria-live="polite">
+   <small id="nLabel">Next up</small>
+   <div class="big" id="nIn">-</div>
+   <p id="nWhat"><b>-</b></p>
+  </div>
+ </div>
+</div>
+</header>
+
+<section class="band menu">
+<div class="wrap">
+ <div class="menuhead"><h2>On the menu</h2><span class="note" id="menuNote"></span></div>
+ <div id="menu"></div>
+</div>
+</section>
+
+<section class="band settings">
+<div class="wrap grid">
+ <div class="f"><label for="sDate">Dinner day</label><input type="date" id="sDate"></div>
+ <div class="f"><label for="sTime">Food on the table</label><input type="time" id="sTime" step="300"><div class="hint">Every time moves with this. The sheet's plan lands at 20:00.</div></div>
+ <div class="f"><label>Running late?</label><div class="latebox"><button class="btn" id="late">+10 min</button><button class="btn ghost" id="early">-10 min</button></div><div class="hint" id="lateHint">Moves only the jobs not yet ticked.</div></div>
+ <div class="f"><label>Start again</label><button class="btn ghost" id="reset" style="width:100%">Clear ticks and delays</button></div>
+</div>
+</section>
+
+<main class="band">
+<div class="wrap main">
+ <section>
+  <h2>The run-sheet</h2>
+  <p class="lead" id="lead"></p>
+  <div id="sched"></div>
+ </section>
+ <aside>
+  <div class="card">
+   <h2 style="font-size:26px">Two ovens and a hob</h2>
+   <p class="lead" style="margin-bottom:4px">What is cooking where, through the afternoon.</p>
+   <div class="lanes" id="lanes"></div>
+   <div class="legend"><span><i style="background:var(--oven)"></i>Oven</span><span><i style="background:var(--hob)"></i>Hob</span><span><i style="background:var(--rest)"></i>Resting</span><span><i style="background:var(--prep)"></i>Prep</span></div>
+   <div id="clash"></div>
+  </div>
+  <div class="card">
+   <h2 style="font-size:26px">Probe temperatures</h2>
+   <table class="temps"><tbody>
+    <tr><td>Turkey, thigh</td><td>77°C</td></tr>
+    <tr><td>Turkey, breast</td><td>74°C</td></tr>
+    <tr><td>Lamb, medium-rare</td><td>63°C</td></tr>
+    <tr><td>Lamb, medium</td><td>71°C</td></tr>
+   </tbody></table>
+   <p class="note">From the timetable. Probe the thickest part, away from the bone.</p>
+  </div>
+  <div class="card">
+   <h2 style="font-size:26px">Snacks through the day</h2>
+   <div id="snacks"></div>
+  </div>
+  <p class="note">Recipes live in the <a href="https://docs.google.com/document/d/1KTkJe8b9nnWnHGQZGaKE-dLznHqQYbZh8AAy93FJasE/edit?usp=drivesdk">family recipe doc</a> (Google Docs, needs access) and, for the Yorkshires, <a href="https://www.bbc.co.uk/food/recipes/yorkshire_pudding_69240">BBC Food</a>.</p>
+ </aside>
+</div>
+</main>
+
+<div id="km" hidden role="dialog" aria-modal="true" aria-label="Kitchen mode">
+ <div class="kmtop"><span class="clk" id="kmClock">--:--</span><div class="row" style="margin:0"><button class="pill" id="kmAlarm" aria-pressed="false">Alarms off</button><button class="pill" id="kmClose">Close</button></div></div>
+ <div class="kmcard">
+  <div class="kmlabel" id="kmLabel">Next</div>
+  <div class="kmwhen" id="kmWhen">--:--</div>
+  <div class="kmtitle" id="kmTitle"></div>
+  <p class="kmd" id="kmD"></p>
+  <div class="kmcount" id="kmCount"></div>
+  <div class="kmbtns"><button id="kmPrev">Back</button><button id="kmDone">Done</button><button id="kmNext">Skip ahead</button></div>
+ </div>
+ <div class="kmthen" id="kmThen"></div>
+</div>
+<div id="toasts" aria-live="assertive"></div>
+<footer class="band"><div class="wrap">
+Times, temperatures, ovens and probe readings come from the Christmas Dinner Timetable sheet. Jobs marked <span class="src" style="margin:0">added</span> are not in the sheet and were filled in to make the day flow: oven preheats (20 min), searing the lamb (10 min before it goes in), resting until serving, and a 20:00 serving time. Change any of them to suit.
+</div></footer>
+
+<script>
+{
+const $=id=>document.getElementById(id);
+const KEY='xmasDinner.sheet.v1';
+let st={date:'2026-12-25',time:'20:00',done:{},off:{},snacks:{}};
+try{Object.assign(st,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const LANE={oven:'var(--oven)',hob:'var(--hob)',rest:'var(--rest)',prep:'var(--prep)'};
+const DOC='https://docs.google.com/document/d/1KTkJe8b9nnWnHGQZGaKE-dLznHqQYbZh8AAy93FJasE/edit?usp=drivesdk';
+const BBC='https://www.bbc.co.uk/food/recipes/yorkshire_pudding_69240';
+const BASE=20*60; /* the sheet's plan assumes food on the table at 20:00 */
+
+/* id, time (HH:MM in the sheet's plan, or 'eve'), end, dish, where, title, detail, recipe, added? */
+const T=[
+ ['tb','eve',null,'Turkey','prep','Dry brine the turkey','Day before.',DOC],
+ ['lm','eve',null,'Lamb','prep','Marinade the lamb','Day before.',DOC],
+ ['sp','eve',null,"Shepherd's pie",'prep',"Prep the Indian shepherd's pie",'Day before. Vegetarian.',DOC],
+ ['mc','eve',null,'Mac and cheese','prep','Prep the butter chicken mac and cheese','Day before. Marked vegetarian in the sheet.',DOC],
+ ['t1','16:00',null,'Turkey','prep','Turkey out of the fridge','',null],
+ ['o1','16:58','17:18','Oven 1','oven','Preheat Oven 1 to 160°C','Ready for the turkey at 17:18.',null,1],
+ ['l1','17:15',null,'Lamb','prep','Lamb out of the fridge','',null],
+ ['t2','17:18','19:25','Turkey','oven','Turkey into Oven 1, 160°C','Brush with butter before it goes in.',DOC],
+ ['p1','18:10','18:55','Roast potatoes','prep','Prep the roast potatoes','',DOC],
+ ['s1','18:15',null,"Shepherd's pie",'prep',"Shepherd's pie and mac and cheese out of the fridge",'',null],
+ ['t3','18:18',null,'Turkey','oven','Brush the turkey with butter','1 hour in.',DOC],
+ ['c1','18:30','19:15','Carrots and parsnips','prep','Prep the carrots and parsnips','',DOC],
+ ['o2','18:35','18:55','Oven 2','oven','Preheat Oven 2 to 200°C','Ready for the potatoes at 18:55.',null,1],
+ ['t4','18:48',null,'Turkey','oven','Brush the turkey with butter and remove the bacon','1.5 hours in.',DOC],
+ ['p2','18:55','19:55','Roast potatoes','oven','Roast potatoes into Oven 2, 200°C','',DOC],
+ ['l2','18:55','19:05','Lamb','hob','Sear the lamb','The sheet says sear before it goes in; 10 minutes allowed.',DOC,1],
+ ['l3','19:05','19:30','Lamb','oven','Lamb into Oven 1, 160°C','',DOC],
+ ['y1','19:10','19:25','Yorkshire puddings','prep','Prep the Yorkshire puddings','',BBC],
+ ['c2','19:15','19:55','Carrots and parsnips','oven','Carrots and parsnips into Oven 2, 200°C','',DOC],
+ ['s2','19:20','19:55',"Shepherd's pie",'oven',"Shepherd's pie into Oven 1, 160°C",'',DOC],
+ ['k1','19:20',null,'Cabbage','hob','Saute the cabbage','Medium-high heat on the hob.',DOC],
+ ['t5','19:25','20:00','Turkey','rest','Turkey out: probe, then rest','Thigh 77°C, breast 74°C. Rest until serving.',DOC],
+ ['y2','19:25','19:55','Yorkshire puddings','oven','Yorkshire puddings into Oven 2, 200°C','',BBC],
+ ['m2','19:25','19:55','Mac and cheese','oven','Mac and cheese into Oven 1, 160°C','',DOC],
+ ['l4','19:30','20:00','Lamb','rest','Lamb out: probe, then rest','Medium-rare 63°C, medium 71°C. Rest until serving.',DOC],
+ ['z1','19:55',null,'Everything','oven','Everything out of both ovens','Potatoes, carrots and parsnips, Yorkshires, pie, mac and cheese.',null],
+ ['z2','20:00',null,'Everything','prep','Carve and serve','',null,1]
+];
+const OVEN={t2:1,l3:1,s2:1,m2:1,o1:1,p2:2,c2:2,y2:2,o2:2};
+const SNACKS=[['Italian hot chocolate','recipe','https://docs.google.com/document/d/1KTkJe8b9nnWnHGQZGaKE-dLznHqQYbZh8AAy93FJasE/edit?tab=t.rodzn3nv7m8t'],['Ham and cheese croquettes','store bought'],['Sausage rolls','store bought'],['Chicken samosas','store bought']];
+
+/* menu summary: dish, group, task id that sets its cooking window, where, temperature, extra note */
+const MENU=[
+ ['Turkey','Mains','t2',1,'160°C','Probe: thigh 77°C, breast 74°C'],
+ ['Lamb','Mains','l3',1,'160°C','Probe: medium-rare 63°C, medium 71°C'],
+ ["Indian shepherd's pie",'Vegetarian mains','s2',1,'160°C','Prepped the day before',1],
+ ['Butter chicken mac and cheese','Vegetarian mains','m2',1,'160°C','Prepped the day before',1],
+ ['Roast potatoes','Sides','p2',2,'200°C','@p1'],
+ ['Carrots and parsnips','Sides','c2',2,'200°C','@c1'],
+ ['Yorkshire puddings','Sides','y2',2,'200°C','BBC Food recipe'],
+ ['Sauteed cabbage','Sides','k1',0,'Medium-high','Pan on the hob']
+];
+const pad=n=>String(n).padStart(2,'0');
+const clock=d=>`${pad(d.getHours())}:${pad(d.getMinutes())}`;
+const mins=s=>{const [h,m]=s.split(':').map(Number);return h*60+m};
+function hm(m){m=Math.round(m);const h=Math.floor(m/60),r=m%60;return h?`${h} h${r?` ${r} min`:''}`:`${r} min`}
+function until(ms){const m=Math.max(0,Math.round(ms/60000));const d=Math.floor(m/1440),h=Math.floor(m%1440/60),r=m%60;
+ if(d)return `${d} day${d>1?'s':''} ${h} h`;if(h)return `${h} h ${pad(r)} m`;return `${r} min`}
+function serveAt(){const [y,mo,da]=st.date.split('-').map(Number),[h,mi]=st.time.split(':').map(Number);return new Date(y,mo-1,da,h,mi)}
+let mode='live',pracT=null;
+
+function build(){
+ const S=serveAt(),shift=mins(st.time)-BASE,day=new Date(S);day.setHours(0,0,0,0);
+ const at=(s,id)=>new Date(+day+(mins(s)+shift+(st.off[id]||0))*60000);
+ const tasks=T.map(([id,t,e,dish,lane,title,d,rec,added])=>{
+  if(t==='eve')return {id,eve:1,dish,lane,title,d,rec,added};
+  const when=at(t,id),end=e?at(e,id):when;return {id,when,end,dish,lane,title,d,rec,added,oven:OVEN[id]}});
+ const timed=tasks.filter(t=>!t.eve).sort((a,b)=>a.when-b.when||a.id.localeCompare(b.id));
+ return {S,eve:tasks.filter(t=>t.eve),timed};
+}
+function row(t,isNext,timeTxt,cls=''){
+ const tag=t.lane?`<span class="tag" style="background:${LANE[t.lane]}">${t.oven?'Oven '+t.oven:t.lane}${t.end&&t.end>t.when?' · '+hm((t.end-t.when)/60000):''}</span>`:'';
+ const late=st.off[t.id]?`<span class="src">+${st.off[t.id]} min</span>`:'';
+ const add=t.added?'<span class="src">added</span>':'';
+ const rec=t.rec?` <a href="${t.rec}">Recipe</a>`:'';
+ return `<div class="task ${cls}${st.done[t.id]?' done':''}${isNext?' now':''}"><time>${timeTxt}</time><input type="checkbox" data-id="${t.id}" ${st.done[t.id]?'checked':''} aria-label="Done: ${esc(t.title)}"><div><b>${esc(t.title)}</b>${tag}${add}${late}<span class="d">${esc(t.d)}${rec}</span></div></div>`;
+}
+function render(){
+ const {S,eve,timed}=build(),now=mode==='prac'&&pracT?pracT:new Date();
+ const xmas=S.getMonth()===11&&S.getDate()===25;
+ $('lead').textContent=`Food on the table at ${clock(S)}. Oven 1 heats up at ${clock(timed.find(t=>t.id==='o1').when)}; the turkey goes in at ${clock(timed.find(t=>t.id==='t2').when)}.`;
+ const nextT=timed.find(t=>!st.done[t.id]&&t.when>=now)||timed.find(t=>!st.done[t.id]&&t.end>=now);
+ let html=`<div class="day">${xmas?'Christmas Eve':'The day before'}</div>`+eve.map(t=>row(t,false,'Any time','untimed')).join('');
+ html+=`<div class="day">${xmas?'Christmas Day':'On the day'}</div>`;let lineDrawn=false;
+ timed.forEach(t=>{if(!lineDrawn&&t.when>now&&timed[0].when<now){html+=`<div class="nowline"><span>Now ${clock(now)}</span></div>`;lineDrawn=true}
+  html+=row(t,nextT===t,clock(t.when))});
+ $('sched').innerHTML=html;
+
+ if(now<+S-36e5*20){$('nLabel').textContent='Dinner is served in';$('nIn').textContent=until(S-now);
+  $('nWhat').innerHTML=`First: <b>dry brine the turkey and marinade the lamb</b> the day before. Then the turkey comes out of the fridge at ${clock(timed[0].when)}.`}
+ else if(nextT){const live=nextT.when<=now&&nextT.end>nextT.when;
+  $('nLabel').textContent=live?'Happening now':'Next up in';
+  $('nIn').textContent=live?`${until(nextT.end-now)} left`:until(nextT.when-now);
+  $('nWhat').innerHTML=`<b>${esc(nextT.title)}</b> at ${clock(nextT.when)}. ${esc(nextT.d)}`}
+ else{$('nLabel').textContent='All done';$('nIn').textContent='Merry Christmas';$('nWhat').textContent='Sit down, you have earned it.'}
+
+ /* lanes grouped by where things cook */
+ const t0=+timed[0].when-10*60000,t1=+S+10*60000,span=t1-t0,pct=x=>Math.min(100,Math.max(0,(x-t0)/span*100)).toFixed(2);
+ const groups=[['Oven 1','160°C',t=>t.oven===1||(t.lane!=='hob'&&['Turkey','Lamb',"Shepherd's pie",'Mac and cheese'].includes(t.dish))],
+  ['Oven 2','200°C',t=>t.oven===2||['Roast potatoes','Carrots and parsnips','Yorkshire puddings'].includes(t.dish)],
+  ['Hob','',t=>t.lane==='hob']];
+ const nowPct=now>=t0&&now<=t1?`<div class="lnow" style="left:${pct(now)}%"></div>`:'';
+ let L='';groups.forEach(([g,temp,f])=>{
+  const ts=timed.filter(t=>f(t)&&!(t.lane==='hob'&&g!=='Hob')&&t.dish!=='Everything'&&!t.dish.startsWith('Oven'));
+  L+=`<div class="lgrp">${g} <span>${temp}</span></div>`;
+  const by={};ts.forEach(t=>(by[t.dish]=by[t.dish]||[]).push(t));
+  Object.entries(by).forEach(([n,list])=>{
+   L+=`<div class="lrow"><span>${esc(n)}</span><div class="ltrack">${list.map(t=>t.end>t.when
+    ?`<div class="bar" title="${esc(t.title)} ${clock(t.when)}-${clock(t.end)}" style="left:${pct(t.when)}%;width:${(Math.max(.8,(t.end-t.when)/span*100)).toFixed(2)}%;background:${LANE[t.lane]}"></div>`
+    :`<div class="pt" title="${esc(t.title)} ${clock(t.when)}" style="left:${pct(t.when)}%;background:${LANE[t.lane]}"></div>`).join('')}${nowPct}</div></div>`})});
+ const narrow=$('lanes').clientWidth<380;let tk='';const h0=new Date(t0);h0.setMinutes(0,0,0);
+ for(let h=+h0+36e5,k=0;h<=t1;h+=36e5,k++)if(!narrow||k%2===0)tk+=`<span style="left:${pct(h)}%">${clock(new Date(h))}</span>`;
+ $('lanes').innerHTML=L+`<div class="ticks">${tk}</div>`;
+
+ /* busiest moment in each oven */
+ const warn=[1,2].map(o=>{const ins=timed.filter(t=>t.oven===o&&t.lane==='oven'&&!t.id.startsWith('o'));let best=0,when=null;
+  ins.forEach(a=>{const n=ins.filter(b=>b.when<=a.when&&b.end>a.when).length;if(n>best){best=n;when=a.when}});
+  const names=ins.filter(b=>b.when<=when&&b.end>when).map(b=>b.dish.toLowerCase());
+  return best>=3?`Oven ${o} holds ${best} dishes at ${clock(when)} (${names.join(', ')}). Check the shelves and dishes fit before the day.`:''}).filter(Boolean);
+ $('clash').innerHTML=warn.map(w=>`<div class="warn">${esc(w)}</div>`).join('');
+
+ $('snacks').innerHTML=SNACKS.map(([n,k,u],i)=>`<label class="snack${st.snacks[i]?' done':''}"><input type="checkbox" data-snack="${i}" ${st.snacks[i]?'checked':''}><span>${esc(n)}</span><small>${u?`<a href="${u}">Recipe</a>`:esc(k)}</small></label>`).join('');
+
+ const ps=new Date(S);ps.setDate(ps.getDate()-1);ps.setHours(18,0,0,0);
+ $('prac').dataset.s=Math.max(+ps,+timed[0].when-6*36e5);$('prac').dataset.e=+S+30*60000;
+ if(mode==='prac')$('pracLbl').textContent=clock(now);
+ const tm=id=>timed.find(t=>t.id===id);
+ $('menuNote').textContent=`${MENU.length} dishes and ${SNACKS.length} snacks, on the table at ${clock(S)}`;
+ $('menu').innerHTML=[...new Set(MENU.map(m=>m[1]))].map(g=>`<div class="mgrp"><h3>${g}${MENU.filter(m=>m[1]===g).length>1?' <span class="swipe" aria-hidden="true">· swipe</span>':''}</h3><div class="mcards">${MENU.filter(m=>m[1]===g).map(([n,,id,ov,temp,x,veg])=>{const t=tm(id);
+  const win=t.end>t.when?`${clock(t.when)}–${clock(t.end)}`:`from ${clock(t.when)}`;
+  const where=ov?`<span class="tag" style="background:var(--oven)">Oven ${ov}</span>`:`<span class="tag" style="background:var(--hob)">Hob</span>`;
+  return `<div class="mc${st.done[id]?' done':''}"><b>${esc(n)}${veg?' <span class="veg">Vegetarian</span>':''}</b><span class="tm">${win}</span><span class="w">${where}${esc(temp)}</span><span class="x">${x[0]==='@'?'Prep from '+clock(tm(x.slice(1)).when):esc(x)}</span></div>`}).join('')}</div></div>`).join('')
+  +`<div class="mgrp"><h3>Snacks through the day</h3><p class="x" style="margin:0;color:var(--mute)">${SNACKS.map(s=>esc(s[0])+(s[1]==='store bought'?' (store bought)':'')).join(' · ')}</p></div>`;
+ kmRender(timed,now,nextT);checkAlarms(now);
+ const anyLate=Object.values(st.off).some(v=>v);$('lateHint').textContent=anyLate?'Delays applied to unticked jobs, shown in gold.':'Moves only the jobs not yet ticked.';
+}
+
+/* alarms: a chime, an on-page card, a phone buzz and a notification where allowed */
+let alarms=false,actx=null,lastCheck=null,fired=new Set(),snoozes=[];
+const curNow=()=>mode==='prac'&&pracT?pracT:new Date();
+function chime(){if(!actx)return;const t0=actx.currentTime;
+ [0,1.6].forEach(rep=>[880,1108.7,1318.5].forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain(),t=t0+rep+i*.22;
+  o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.28,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+1.2);
+  o.connect(g).connect(actx.destination);o.start(t);o.stop(t+1.3)}))}
+function ring(t){chime();try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(e){}
+ try{if(window.Notification&&Notification.permission==='granted')new Notification(t.title,{body:`${clock(t.when)}. ${t.d}`})}catch(e){}
+ const el=document.createElement('div');el.className='toast';
+ const s=document.createElement('small');s.textContent=`${clock(t.when)} · time to`;const b=document.createElement('b');b.textContent=t.title;const d=document.createElement('span');d.textContent=t.d;
+ const r=document.createElement('div');r.className='row';
+ const mk=(txt,cls,fn)=>{const x=document.createElement('button');x.className=cls;x.textContent=txt;x.addEventListener('click',()=>{fn();el.remove()});r.append(x)};
+ mk('Done','btn',()=>{st.done[t.id]=true;save();render()});
+ mk('Snooze 5 min','btn ghost',()=>snoozes.push({id:t.id,at:+curNow()+5*60000}));
+ mk('Dismiss','btn ghost',()=>{});
+ el.append(s,b,d,r);$('toasts').append(el);
+ const all=$('toasts').children;if(all.length>3)all[0].remove()}
+function checkAlarms(now){if(!alarms){lastCheck=+now;return}
+ const {timed}=build(),prev=lastCheck==null?+now:lastCheck;
+ if(+now<prev)fired=new Set([...fired].filter(id=>{const t=timed.find(x=>x.id===id);return t&&+t.when<=+now}));
+ else timed.forEach(t=>{if(!st.done[t.id]&&!fired.has(t.id)&&+t.when>prev&&+t.when<=+now){fired.add(t.id);ring(t)}});
+ snoozes=snoozes.filter(s=>{if(s.at<=+now){const t=timed.find(x=>x.id===s.id);if(t&&!st.done[t.id])ring(t);return false}return true});
+ lastCheck=+now}
+function setAlarms(on){alarms=on;
+ if(on){try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();actx.resume()}catch(e){}chime();lastCheck=+curNow();
+  try{if(window.Notification&&Notification.permission==='default')Notification.requestPermission().catch(()=>{})}catch(e){}}
+ ['alarmBtn','kmAlarm'].forEach(id=>{$(id).setAttribute('aria-pressed',on);$(id).textContent=on?'Alarms on':'Alarms off'})}
+$('alarmBtn').addEventListener('click',()=>setAlarms(!alarms));$('kmAlarm').addEventListener('click',()=>setAlarms(!alarms));
+
+/* kitchen mode: one job at a time, big enough to read across the room */
+let km=false,kmOff=0,kmCur=null,wake=null;
+function kmRender(timed,now,nextT){if(!km)return;
+ $('kmClock').textContent=clock(now);
+ const base=nextT?timed.indexOf(nextT):timed.length-1;const i=Math.min(timed.length-1,Math.max(0,base+kmOff));kmOff=i-base;const t=timed[i];kmCur=t;
+ $('kmLabel').textContent=kmOff===0?(t.when<=now?'Now':'Next'):kmOff<0?'Earlier':'Coming up';
+ $('kmWhen').textContent=clock(t.when);$('kmTitle').textContent=t.title;
+ $('kmD').textContent=[t.d,t.oven?`Oven ${t.oven}`:t.lane==='hob'?'On the hob':''].filter(Boolean).join(' · ');
+ $('kmCount').textContent=st.done[t.id]?'Done':t.when>now?`In ${until(t.when-now)}`:t.end>now&&t.end>t.when?`${until(t.end-now)} left, until ${clock(t.end)}`:'Due now';
+ $('kmDone').textContent=st.done[t.id]?'Undo':'Done';
+ $('kmPrev').disabled=i===0;$('kmNext').disabled=i===timed.length-1;
+ const then=timed.slice(i+1).filter(x=>!st.done[x.id]).slice(0,3);
+ $('kmThen').innerHTML=then.length?'Then:'+then.map(x=>`<div><b>${clock(x.when)}</b><span>${esc(x.title)}</span></div>`).join(''):'Nothing left after this one.'}
+function openKm(){km=true;kmOff=0;$('km').hidden=false;
+ try{const r=document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();r&&r.catch(()=>{})}catch(e){}
+ try{navigator.wakeLock&&navigator.wakeLock.request('screen').then(w=>wake=w).catch(()=>{})}catch(e){}
+ render();$('kmDone').focus()}
+function closeKm(){km=false;$('km').hidden=true;try{document.fullscreenElement&&document.exitFullscreen().catch(()=>{})}catch(e){}
+ try{wake&&wake.release()}catch(e){}wake=null;$('kmBtn').focus()}
+$('kmBtn').addEventListener('click',openKm);$('kmClose').addEventListener('click',closeKm);
+$('kmDone').addEventListener('click',()=>{if(!kmCur)return;const was=st.done[kmCur.id];st.done[kmCur.id]=!was;if(!was)kmOff=0;save();render()});
+$('kmPrev').addEventListener('click',()=>{kmOff--;render()});$('kmNext').addEventListener('click',()=>{kmOff++;render()});
+document.addEventListener('keydown',e=>{if(!km)return;if(e.key==='Escape')closeKm();else if(e.key==='ArrowLeft'){kmOff--;render()}else if(e.key==='ArrowRight'){kmOff++;render()}});
+document.addEventListener('visibilitychange',()=>{if(km&&document.visibilityState==='visible'&&!wake)try{navigator.wakeLock&&navigator.wakeLock.request('screen').then(w=>wake=w).catch(()=>{})}catch(e){}});
+
+$('sDate').value=st.date;$('sTime').value=st.time;
+$('sDate').addEventListener('change',e=>{if(e.target.value){st.date=e.target.value;save();render()}});
+$('sTime').addEventListener('change',e=>{if(e.target.value){st.time=e.target.value;save();render()}});
+const nudge=d=>{const {timed}=build(),now=mode==='prac'&&pracT?pracT:new Date();
+ const live=timed.some(t=>t.when<=now)&&now<=serveAt();
+ timed.forEach(t=>{if(st.done[t.id])return;if(live&&t.end<now)return;st.off[t.id]=Math.max(-60,(st.off[t.id]||0)+d)});save();render()};
+$('late').addEventListener('click',()=>nudge(10));$('early').addEventListener('click',()=>nudge(-10));
+$('reset').addEventListener('click',()=>{st.done={};st.off={};st.snacks={};save();render()});
+$('sched').addEventListener('change',e=>{const id=e.target.dataset.id;if(id){st.done[id]=e.target.checked;save();render()}});
+$('snacks').addEventListener('change',e=>{const i=e.target.dataset.snack;if(i!==undefined){st.snacks[i]=e.target.checked;save();render()}});
+const setMode=m=>{mode=m;$('mLive').setAttribute('aria-pressed',m==='live');$('mPrac').setAttribute('aria-pressed',m==='prac');$('pracWrap').hidden=m!=='prac';
+ if(m==='prac'){render();const p=$('prac');pracT=new Date(+p.dataset.s+(p.dataset.e-p.dataset.s)*p.value/100)}render()};
+$('mLive').addEventListener('click',()=>setMode('live'));$('mPrac').addEventListener('click',()=>setMode('prac'));
+$('prac').addEventListener('input',e=>{const p=e.target;pracT=new Date(+p.dataset.s+(p.dataset.e-p.dataset.s)*p.value/100);render()});
+let lastW=0;const ro=new ResizeObserver(()=>{const w=$('lanes').clientWidth;if(Math.abs(w-lastW)>20){lastW=w;render()}});ro.observe($('lanes'));
+render();setInterval(()=>{if(mode==='live')render()},10000);
+}
+</script>
+</body>
+</html>
