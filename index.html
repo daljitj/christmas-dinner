@@ -123,23 +123,19 @@ footer a{color:var(--berry2)}
 .toast span{display:block;font-size:15px;opacity:.85}
 .toast .row{margin-top:10px;gap:8px}.toast .btn{background:#fff5f2;color:#1d1716;min-height:44px;padding:8px 14px}.toast .btn.ghost{background:transparent;color:#fff5f2;border-color:#fff5}
 @media(prefers-reduced-motion:no-preference){.toast{animation:pop .35s ease-out}@keyframes pop{from{transform:translateY(20px);opacity:0}}}
-@media(max-width:600px){.menu .mcards{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;margin-inline:calc(-1 * max(5vw,16px));padding:2px max(5vw,16px) 8px;scroll-padding-inline:max(5vw,16px);scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.menu .mcards::-webkit-scrollbar{display:none}
-.menu .mc{flex:0 0 78%;scroll-snap-align:start}
-}
-.mgrp h3 .swipe{display:none;font-weight:400;color:var(--mute)}
-@media(max-width:600px){.mgrp h3 .swipe{display:inline}}
+
 @media(max-width:600px){.kmbtns{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.kmbtns #kmDone{grid-column:1/-1;grid-row:1}}
 .menu{border-bottom:1px solid var(--line)}
 .menuhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px}
-.mgrp{margin-top:14px}.mgrp h3{font-size:14px;font-weight:700;color:var(--berry2);margin:0 0 8px}
-.mcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
-.mc{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:var(--bg);display:flex;flex-direction:column;gap:4px}
-.mc b{font-size:17px;line-height:1.25}
-.mc .w{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:14px;color:var(--mute)}
+.mlist{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px clamp(20px,3vw,40px)}
+.mgrp h3{font-size:14px;font-weight:700;color:var(--berry2);margin:0;padding-bottom:4px;border-bottom:2px solid var(--berry2)}
+.mc{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding:9px 0;border-bottom:1px solid var(--line);align-items:baseline}
+.mc b{font-size:16px;font-weight:600;line-height:1.3}
+.mc .tm{font-family:"DM Serif Display",Georgia,serif;font-size:19px;line-height:1.1;white-space:nowrap;text-align:right}
+.mc .w{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;color:var(--mute)}
 .mc .w .tag{margin:0}
-.mc .tm{font-family:"DM Serif Display",Georgia,serif;font-size:22px;line-height:1.1;white-space:nowrap}
-.mc .x{font-size:14px;color:var(--mute)}
+.snackline{margin:14px 0 0;font-size:15px;color:var(--mute)}.snackline b{color:var(--berry2);font-weight:700;font-size:14px;margin-right:6px}
+@media(max-width:900px){.mlist{grid-template-columns:minmax(0,1fr)}.mgrp+.mgrp{margin-top:10px}}
 .veg{font-size:13px;font-weight:600;color:var(--pine);white-space:nowrap}
 .untimed time{font-size:16px;font-family:Figtree,system-ui,sans-serif;color:var(--mute);padding-top:3px}
 </style>
@@ -369,11 +365,11 @@ function render(){
  if(mode==='prac')$('pracLbl').textContent=clock(now);
  const tm=id=>timed.find(t=>t.id===id);
  $('menuNote').textContent=`${MENU.length} dishes and ${SNACKS.length} snacks, on the table at ${clock(S)}`;
- $('menu').innerHTML=[...new Set(MENU.map(m=>m[1]))].map(g=>`<div class="mgrp"><h3>${g}${MENU.filter(m=>m[1]===g).length>1?' <span class="swipe" aria-hidden="true">· swipe</span>':''}</h3><div class="mcards">${MENU.filter(m=>m[1]===g).map(([n,,id,ov,temp,x,veg])=>{const t=tm(id);
+ $('menu').innerHTML=`<div class="mlist">${[...new Set(MENU.map(m=>m[1]))].map(g=>`<div class="mgrp"><h3>${g}</h3>${MENU.filter(m=>m[1]===g).map(([n,,id,ov,temp,,veg])=>{const t=tm(id);
   const win=t.end>t.when?`${clock(t.when)}–${clock(t.end)}`:`from ${clock(t.when)}`;
   const where=ov?`<span class="tag" style="background:var(--oven)">Oven ${ov}</span>`:`<span class="tag" style="background:var(--hob)">Hob</span>`;
-  return `<div class="mc${st.done[id]?' done':''}"><b>${esc(n)}${veg?' <span class="veg">Vegetarian</span>':''}</b><span class="tm">${win}</span><span class="w">${where}${esc(temp)}</span><span class="x">${x[0]==='@'?'Prep from '+clock(tm(x.slice(1)).when):esc(x)}</span></div>`}).join('')}</div></div>`).join('')
-  +`<div class="mgrp"><h3>Snacks through the day</h3><p class="x" style="margin:0;color:var(--mute)">${SNACKS.map(s=>esc(s[0])+(s[1]==='store bought'?' (store bought)':'')).join(' · ')}</p></div>`;
+  return `<div class="mc"><b>${esc(n)}${veg?' <span class="veg">Vegetarian</span>':''}</b><span class="tm">${win}</span><span class="w">${where}${esc(temp)}</span></div>`}).join('')}</div>`).join('')}</div>`
+  +`<p class="snackline"><b>Snacks</b>${SNACKS.map(s=>esc(s[0])+(s[1]==='store bought'?' (store bought)':'')).join(' · ')}</p>`;
  kmRender(timed,now,nextT);checkAlarms(now);
  const anyLate=Object.values(st.off).some(v=>v);$('lateHint').textContent=anyLate?'Delays applied to unticked jobs, shown in gold.':'Moves only the jobs not yet ticked.';
 }
